@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS for the Tic-Tac-Toe game */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #2d3748; /* Dark text color */
+        }
+
+        .game-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1.5rem; /* Rounded corners */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+            text-align: center;
+            width: 95%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 0.75rem; /* Space between cells */
+            width: 100%;
+            max-width: 360px; /* Fixed size for the board */
+            height: 360px; /* Fixed size for the board */
+            margin: 0 auto;
+            background-color: #cbd5e0; /* Light border color for grid */
+            border-radius: 0.75rem;
+            overflow: hidden; /* Ensures rounded corners are applied */
+        }
+
+        .cell {
+            background-color: #edf2f7; /* Cell background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem; /* Large font for X/O */
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            border-radius: 0.5rem; /* Rounded corners for cells */
+        }
+
+        .cell:hover:not(.x):not(.o) {
+            background-color: #e2e8f0; /* Slightly darker on hover */
+            transform: scale(1.02);
+        }
+
+        .cell.x {
+            color: #e53e3e; /* Red for X */
+        }
+
+        .cell.o {
+            color: #4299e1; /* Blue for O */
+        }
+
+        .status-message {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            min-height: 30px; /* Reserve space to prevent layout shift */
+        }
+
+        .reset-button {
+            background-color: #48bb78; /* Green button */
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .reset-button:hover {
+            background-color: #38a169; /* Darker green on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .reset-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal for game end messages */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-content h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #2d3748;
+        }
+
+        .modal-content button {
+            background-color: #4299e1;
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        .modal-content button:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Tic-Tac-Toe</h1>
+        <div id="statusMessage" class="status-message text-blue-600">Player X's Turn</div>
+        <div class="game-board" id="gameBoard">
+            <div class="cell" data-cell-index="0"></div>
+            <div class="cell" data-cell-index="1"></div>
+            <div class="cell" data-cell-index="2"></div>
+            <div class="cell" data-cell-index="3"></div>
+            <div class="cell" data-cell-index="4"></div>
+            <div class="cell" data-cell-index="5"></div>
+            <div class="cell" data-cell-index="6"></div>
+            <div class="cell" data-cell-index="7"></div>
+            <div class="cell" data-cell-index="8"></div>
+        </div>
+        <button id="resetButton" class="reset-button">Reset Game</button>
+    </div>
+
+    <!-- Game End Modal -->
+    <div id="gameEndModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalMessage"></h3>
+            <button id="playAgainButton">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const gameBoard = document.getElementById('gameBoard');
+        const cells = document.querySelectorAll('.cell');
+        const statusMessage = document.getElementById('statusMessage');
+        const resetButton = document.getElementById('resetButton');
+        const gameEndModal = document.getElementById('gameEndModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const playAgainButton = document.getElementById('playAgainButton');
+
+        // Game variables
+        let board = ['', '', '', '', '', '', '', '', '']; // Represents the 3x3 board
+        let currentPlayer = 'X'; // 'X' or 'O'
+        let gameActive = true; // True if the game is ongoing
+
+        // Winning conditions (indices of cells that form a win)
+        const winningConditions = [
+            [0, 1, 2], // Rows
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6], // Columns
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8], // Diagonals
+            [2, 4, 6]
+        ];
+
+        // Function to handle a cell click
+        function handleCellClick(event) {
+            const clickedCell = event.target;
+            const clickedCellIndex = parseInt(clickedCell.dataset.cellIndex);
+
+            // If the cell is already filled or the game is not active, do nothing
+            if (board[clickedCellIndex] !== '' || !gameActive) {
+                return;
+            }
+
+            // Update the board and the UI
+            board[clickedCellIndex] = currentPlayer;
+            clickedCell.textContent = currentPlayer;
+            clickedCell.classList.add(currentPlayer.toLowerCase()); // Add class for styling (x or o)
+
+            checkGameStatus(); // Check for win or draw
+        }
+
+        // Function to check game status (win or draw)
+        function checkGameStatus() {
+            let roundWon = false;
+            for (let i = 0; i < winningConditions.length; i++) {
+                const winCondition = winningConditions[i];
+                let a = board[winCondition[0]];
+                let b = board[winCondition[1]];
+                let c = board[winCondition[2]];
+
+                // If any cell in the condition is empty, continue
+                if (a === '' || b === '' || c === '') {
+                    continue;
+                }
+                // If all cells in the condition are the same, a player has won
+                if (a === b && b === c) {
+                    roundWon = true;
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                statusMessage.textContent = `Player ${currentPlayer} Wins!`;
+                modalMessage.textContent = `Player ${currentPlayer} Wins!`;
+                gameActive = false;
+                showModal();
+                return;
+            }
+
+            // Check for a draw (if no empty cells and no winner)
+            let roundDraw = !board.includes('');
+            if (roundDraw) {
+                statusMessage.textContent = `It's a Draw!`;
+                modalMessage.textContent = `It's a Draw!`;
+                gameActive = false;
+                showModal();
+                return;
+            }
+
+            // If no win or draw, switch to the next player
+            changePlayer();
+        }
+
+        // Function to change the current player
+        function changePlayer() {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            statusMessage.textContent = `Player ${currentPlayer}'s Turn`;
+        }
+
+        // Function to reset the game
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            statusMessage.textContent = `Player ${currentPlayer}'s Turn`;
+
+            // Clear cell content and remove styling classes
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o');
+            });
+            hideModal(); // Hide the modal if it's open
+        }
+        
+
+        // Function to show the game end modal
+        function showModal() {
+            gameEndModal.classList.add('show');
+        }
+
+        // Function to hide the game end modal
+        function hideModal() {
+            gameEndModal.classList.remove('show');
+        }
+
+        // Event Listeners
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        resetButton.addEventListener('click', resetGame);
+        playAgainButton.addEventListener('click', resetGame); // Play again button also resets the game
+    </script>
+
+</body>
+</html>
